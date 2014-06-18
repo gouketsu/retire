@@ -189,7 +189,7 @@ module Tire
           raise ArgumentError, "Update requires either a script or a partial document" unless document[:script] || document[:doc]
         end
 
-        header = { action.to_sym => { :_index => name, :_type => type, :_id => id } }
+        header = { action.to_sym => { :_type => type, :_id => id } }
         header[action.to_sym].update({:_retry_on_conflict => options[:retry_on_conflict]}) if options[:retry_on_conflict]
 
         if document.respond_to?(:to_hash) && doc_hash = document.to_hash
