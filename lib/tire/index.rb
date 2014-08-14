@@ -308,12 +308,12 @@ module Tire
       end
     end
 
-    def reindex(name, options={}, &block)
+    def reindex(name, options={}, output=nil, &block)
       new_index = Index.new(name)
       new_index.create(options) unless new_index.exists?
 
       transform = options.delete(:transform)
-
+      fd = File.open(output, "w") unless output.nil?
       Search::Scan.new(self.name, &block).each do |results|
 
         documents = results.map do |document|
@@ -322,7 +322,15 @@ module Tire
           document
         end
 
-        new_index.bulk_store documents
+        response = new_index.bulk_store documents
+        unless output.nil?
+          require 'json'
+          JSON.parse(response.body)['items'].each do |value|
+            fd.write("error on #{value['index']['_index']}/#{value['index']['_type']}/#{value['index']['_id']} #{value['index']['error']}") if value['index'].key?('error')
+          end
+        end
+
+
       end
     end
 
