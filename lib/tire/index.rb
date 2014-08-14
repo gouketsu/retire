@@ -229,6 +229,8 @@ module Tire
 
         output = []
         output << MultiJson.encode(header)
+        document.delete(:id) if document.key?(:id)
+        document.delete(:_type) if document.key?(:_type)
         output << convert_document_to_json(document) unless action.to_s == 'delete'
         output.join("\n")
       end
@@ -243,6 +245,7 @@ module Tire
         params[:refresh]     = options.delete(:refresh)
         params               = params.reject { |name,value| !value }
         params_encoded       = params.empty? ? '' : "?#{params.to_param}"
+
 
         @response = Configuration.client.post("#{url}/_bulk#{params_encoded}", payload.join("\n"))
         raise RuntimeError, "#{@response.code} > #{@response.body}" if @response && @response.failure?
@@ -305,12 +308,12 @@ module Tire
       end
     end
 
-    def reindex(name, options={}, &block)
+    def reindex(name, options={}, output=nil, &block)
       new_index = Index.new(name)
       new_index.create(options) unless new_index.exists?
 
       transform = options.delete(:transform)
-
+      fd = File.open(output, "w") unless output.nil?
       Search::Scan.new(self.name, &block).each do |results|
 
         documents = results.map do |document|
@@ -319,7 +322,15 @@ module Tire
           document
         end
 
-        new_index.bulk_store documents
+        response = new_index.bulk_store documents
+        unless output.nil?
+          require 'json'
+          JSON.parse(response.body)['items'].each do |value|
+            fd.write("error on #{value['index']['_index']}/#{value['index']['_type']}/#{value['index']['_id']} #{value['index']['error']}") if value['index'].key?('error')
+          end
+        end
+
+
       end
     end
 
