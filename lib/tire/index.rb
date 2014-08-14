@@ -229,6 +229,8 @@ module Tire
 
         output = []
         output << MultiJson.encode(header)
+        document.delete(:id) if document.key?(:id)
+        document.delete(:_type) if document.key?(:_type)
         output << convert_document_to_json(document) unless action.to_s == 'delete'
         output.join("\n")
       end
@@ -243,6 +245,7 @@ module Tire
         params[:refresh]     = options.delete(:refresh)
         params               = params.reject { |name,value| !value }
         params_encoded       = params.empty? ? '' : "?#{params.to_param}"
+
 
         @response = Configuration.client.post("#{url}/_bulk#{params_encoded}", payload.join("\n"))
         raise RuntimeError, "#{@response.code} > #{@response.body}" if @response && @response.failure?
