@@ -317,7 +317,7 @@ module Tire
       Search::Scan.new(self.name, &block).each do |results|
 
         documents = results.map do |document|
-          document  = document.to_hash.except(:type, :_index, :_explanation, :_score, :_version, :highlight, :sort)
+          document  = document.to_hash.except(:_index, :_explanation, :_score, :_version, :highlight, :sort)
           document  = transform.call(document) if transform
           document
         end
@@ -326,7 +326,7 @@ module Tire
         unless output.nil?
           require 'json'
           JSON.parse(response.body)['items'].each do |value|
-            fd.write("error on #{value['index']['_index']}/#{value['index']['_type']}/#{value['index']['_id']} #{value['index']['error']}") if value['index'].key?('error')
+            fd.write("error on #{value['index']['_index']}/#{value['index']['_type']}/#{value['index']['_id']} #{value['index']['error']}\n") if value['index'].key?('error')
           end
         end
 
