@@ -317,7 +317,7 @@ module Tire
       Search::Scan.new(self.name, &block).each do |results|
 
         documents = results.map do |document|
-          document  = document.to_hash.except(:type, :_index, :_explanation, :_score, :_version, :highlight, :sort)
+          document  = document.to_hash.except(:_index, :_explanation, :_score, :_version, :highlight, :sort)
           document  = transform.call(document) if transform
           document
         end
