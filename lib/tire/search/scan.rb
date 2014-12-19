@@ -47,8 +47,13 @@ module Tire
       def initialize(indices=nil, options={}, &block)
         @indices = Array(indices)
         @options = options.update(:search_type => 'scan', :scroll => '10m')
+        @options_search = Marshal.load(Marshal.dump(@options))
         @seen    = 0
-        @search  = Search.new(@indices, @options, &block)
+        @search  = Search.new(@indices, @options_search, &block)
+
+        if @options.key?(:size) 
+          @options.delete(:size)
+        end
       end
 
       def url;                Configuration.url + "/_search/scroll";                           end
@@ -62,6 +67,7 @@ module Tire
       def scroll_id
         @scroll_id ||= @search.perform.json['_scroll_id']
       end
+
 
       def each
         until results.empty?

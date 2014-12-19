@@ -308,13 +308,13 @@ module Tire
       end
     end
 
-    def reindex(name, options={}, output=nil, &block)
+    def reindex(name, options={}, scan_options={},  output=nil, &block)
       new_index = Index.new(name)
       new_index.create(options) unless new_index.exists?
 
       transform = options.delete(:transform)
       fd = File.open(output, "w") unless output.nil?
-      Search::Scan.new(self.name, &block).each do |results|
+      Search::Scan.new(self.name, scan_options, &block).each do |results|
 
         documents = results.map do |document|
           document  = document.to_hash.except(:_index, :_explanation, :_score, :_version, :highlight, :sort)
